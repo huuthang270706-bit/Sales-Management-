@@ -10,15 +10,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
+@CrossOrigin(origins = "*")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
-    // 1. Lấy danh sách tất cả sản phẩm
+    // 1. Lấy danh sách tất cả sản phẩm (có hỗ trợ tìm kiếm qua ?keyword=...)
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productService.getAllProducts();
+    public ResponseEntity<List<Product>> getAllProducts(@RequestParam(required = false) String keyword) {
+        List<Product> products = productService.getAllProducts(keyword);
         return ResponseEntity.ok(products);
     }
 
@@ -35,5 +36,19 @@ public class ProductController {
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         Product savedProduct = productService.createProduct(product);
         return ResponseEntity.ok(savedProduct);
+    }
+
+    // 4. Cập nhật thông tin sản phẩm (Sửa)
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        Product updatedProduct = productService.updateProduct(id, product);
+        return ResponseEntity.ok(updatedProduct);
+    }
+
+    // 5. Xóa sản phẩm theo ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.ok("Xóa sản phẩm thành công!");
     }
 }
