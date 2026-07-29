@@ -1,14 +1,21 @@
 package vn.edu.gdu.salesmanagementsystem.service;
-import java.util.List;
-import vn.edu.gdu.salesmanagementsystem.dto.CreateOrderRequest;
-import vn.edu.gdu.salesmanagementsystem.dto.OrderItemRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.edu.gdu.salesmanagementsystem.entity.*;
-import vn.edu.gdu.salesmanagementsystem.repository.*;
+import vn.edu.gdu.salesmanagementsystem.dto.CreateOrderRequest;
+import vn.edu.gdu.salesmanagementsystem.dto.OrderItemRequest;
+import vn.edu.gdu.salesmanagementsystem.entity.Customer;
+import vn.edu.gdu.salesmanagementsystem.entity.Order;
+import vn.edu.gdu.salesmanagementsystem.entity.OrderDetail;
+import vn.edu.gdu.salesmanagementsystem.entity.Product;
+import vn.edu.gdu.salesmanagementsystem.repository.CustomerRepository;
+import vn.edu.gdu.salesmanagementsystem.repository.OrderRepository;
+import vn.edu.gdu.salesmanagementsystem.repository.ProductRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class OrderService {
@@ -22,46 +29,56 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    // 1. Logic Tạo Đơn Hàng
     @Transactional
-    public Order createOrder(CreateOrderRequest request) { // <-- Dùng DTO ở đây
-        // 1. Kiểm tra Customer
-        Customer customer = customerRepository.findById(request.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách hàng có ID: " + request.getCustomerId()));
+    public Order createOrder(CreateOrderRequest orderRequest) {
+        Customer customer = customerRepository.findById(orderRequest.getCustomerId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng ID: " + orderRequest.getCustomerId()));
 
         Order order = new Order();
         order.setCustomer(customer);
         order.setOrderDate(LocalDateTime.now());
 
-        double totalAmount = 0.0;
+        double totalAmount = 0;
+        List<OrderDetail> orderDetails = new ArrayList<>();
 
-        // 2. Duyệt qua từng sản phẩm từ DTO
-        for (OrderItemRequest item : request.getItems()) {
+        for (OrderItemRequest item : orderRequest.getItems()) {
             Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Sản phẩm có ID: " + item.getProductId()));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm ID: " + item.getProductId()));
 
-            // Kiểm tra số lượng tồn kho
             if (product.getQuantity() < item.getQuantity()) {
-                throw new RuntimeException("Sản phẩm '" + product.getName() + "' không đủ số lượng trong kho! (Còn: " + product.getQuantity() + ")");
+                throw new RuntimeException("Sản phẩm " + product.getName() + " không đủ số lượng trong kho!");
             }
 
-            // Trừ số lượng tồn kho
+            // Trừ tồn kho
             product.setQuantity(product.getQuantity() - item.getQuantity());
             productRepository.save(product);
 
-            // Tạo OrderDetail
-            OrderDetail orderDetail = new OrderDetail();
-            orderDetail.setProduct(product);
-            orderDetail.setQuantity(item.getQuantity());
-            orderDetail.setPrice(product.getPrice());
+            // Chi tiết đơn hàng
+            OrderDetail detail = new OrderDetail();
+            detail.setOrder(order);
+            detail.setProduct(product);
+            detail.setQuantity(item.getQuantity());
+            detail.setPrice(product.getPrice());
 
+            orderDetails.add(detail);
             totalAmount += product.getPrice() * item.getQuantity();
-
-            // Thêm vào Order
-            order.addOrderDetail(orderDetail);
         }
 
         order.setTotalAmount(totalAmount);
+        order.setOrderDetails(orderDetails);
 
         return orderRepository.save(order);
+    }
+
+    // 2. Lấy tất cả đơn hàng
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    // 3. Lấy chi tiết 1 đơn hàng theo ID
+    public Order getOrderById(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + id));
     }
 }

@@ -1,10 +1,11 @@
 package vn.edu.gdu.salesmanagementsystem.entity;
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.FetchType;
 
 @Entity
 @Table(name = "orders")
@@ -25,8 +26,9 @@ public class Order {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderDetail> orderDetails = new ArrayList<>();
+    @JsonManagedReference
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<OrderDetail> orderDetails;
 
     // Helper method để gắn mối quan hệ 2 chiều
     public void addOrderDetail(OrderDetail detail) {
