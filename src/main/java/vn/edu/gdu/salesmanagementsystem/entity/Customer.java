@@ -1,4 +1,5 @@
 package vn.edu.gdu.salesmanagementsystem.entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,6 +21,7 @@ public class Customer {
     private String phone;
 
     private String address;
+    @JsonIgnore
     @OneToMany(mappedBy = "customer")
     private List<Order> orders;
 }

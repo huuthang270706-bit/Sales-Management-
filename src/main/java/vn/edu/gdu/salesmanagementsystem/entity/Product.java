@@ -1,4 +1,5 @@
 package vn.edu.gdu.salesmanagementsystem.entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,8 +25,10 @@ public class Product {
     private String description;
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonIgnore
     private Category category;
     @OneToMany(mappedBy = "product")
+    @JsonIgnore
     private List<OrderDetail> orderDetails;
 
 }
