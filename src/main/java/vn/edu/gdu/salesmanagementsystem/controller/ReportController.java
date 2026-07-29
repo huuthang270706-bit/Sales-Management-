@@ -1,5 +1,5 @@
 package vn.edu.gdu.salesmanagementsystem.controller;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +10,7 @@ import vn.edu.gdu.salesmanagementsystem.service.ReportService;
 
 import java.util.List;
 import java.util.Map;
-
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/reports")
 public class ReportController {
