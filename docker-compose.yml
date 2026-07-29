@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  mysqldb:
+    image: mysql:8.0
+    container_name: mysqldb
+    environment:
+      MYSQL_ROOT_PASSWORD: '123456789'
+      MYSQL_DATABASE: sales_management
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app:
+    build: .
+    container_name: sales-app
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysqldb
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+volumes:
+  mysql_data:
